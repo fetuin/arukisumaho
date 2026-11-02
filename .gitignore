@@ -1,0 +1,17 @@
+# ビルド成果物
+.gradle/
+build/
+app/build/
+*.apk
+*.aab
+
+# 手元の環境設定
+local.properties
+.idea/
+*.iml
+
+# 署名鍵（公開リポジトリに入れない。別に保管すること）
+keystore/
+*.jks
+*.keystore
+keystore.properties

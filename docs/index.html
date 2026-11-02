@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>歩きスマホ注意 by usePocket</title>
+<meta name="description" content="歩きながらスマホを使うと、しつこく警告して回数を記録するAndroidアプリ。子どもの歩きスマホ対策に。">
+<link rel="icon" href="icon.png">
+<meta property="og:title" content="歩きスマホ注意 by usePocket">
+<meta property="og:description" content="歩きながらスマホを使うと、しつこく警告して回数を記録するAndroidアプリ。">
+<meta property="og:image" content="https://fetuin.github.io/arukisumaho/icon.png">
+<style>
+:root {
+  --bg: #f7f4f3;
+  --surface: #ffffff;
+  --fg: #231c1b;
+  --muted: #6e6361;
+  --line: #e6dedc;
+  --accent: #c62828;
+  --accent-soft: #fbe9e7;
+  --accent-fg: #ffffff;
+  --ok: #2e7d32;
+  --font-ui: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "BIZ UDPGothic", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171211; --surface: #201a19; --fg: #ece5e3; --muted: #a89c99; --line: #3a302e;
+    --accent: #ef6c63; --accent-soft: #3a201e; --accent-fg: #1a0d0c; --ok: #7cc47f;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.85 var(--font-ui);
+  overflow-wrap: anywhere;
+}
+.wrap {
+  max-width: 760px; margin: 0 auto;
+  padding: 0 max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px));
+}
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3 { line-height: 1.4; margin: 0; }
+h2 {
+  font-size: 21px; padding-bottom: 8px; border-bottom: 2px solid var(--line);
+  margin: 48px 0 18px; scroll-margin-top: 16px;
+}
+h3 { font-size: 16.5px; margin: 22px 0 8px; }
+p { margin: 0 0 12px; }
+ul, ol { margin: 0 0 12px; padding-left: 1.4em; }
+li { margin: 2px 0; }
+b { font-weight: 700; }
+code { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: .88em; background: var(--accent-soft); padding: 1px 6px; border-radius: 4px; }
+
+/* アクセスカウンター（最上部の帯） */
+.counter {
+  display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 4px 16px;
+  font-size: 12.5px; color: var(--muted); background: var(--surface); border-bottom: 1px solid var(--line);
+  padding-block: 6px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  font-variant-numeric: tabular-nums;
+}
+.counter b { color: var(--fg); margin-left: 4px; }
+
+/* ヒーロー */
+.hero { padding: 36px 0 8px; }
+.brand { display: flex; align-items: center; gap: 16px; }
+.brand img { width: 76px; height: 76px; flex: none; border-radius: 18px; box-shadow: 0 2px 10px rgb(0 0 0 / .12); }
+.brand h1 { font-size: clamp(24px, 6vw, 32px); letter-spacing: .01em; }
+.brand h1 small { display: block; font-size: 14px; font-weight: 700; color: var(--muted); letter-spacing: .04em; }
+.lead { margin-top: 18px; font-size: 16.5px; }
+.dev { font-size: 13.5px; color: var(--muted); }
+
+.get {
+  display: grid; grid-template-columns: 1fr auto; gap: 16px 24px; align-items: center;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px;
+  margin-top: 22px;
+}
+.dl {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  background: var(--accent); color: var(--accent-fg); text-decoration: none; font-weight: 700;
+  font-size: 17px; padding: 14px 22px; border-radius: 12px; min-height: 52px; width: 100%;
+}
+.dl svg { width: 22px; height: 22px; flex: none; }
+.dl:hover { filter: brightness(1.06); }
+.meta { font-size: 13px; color: var(--muted); margin: 10px 0 0; font-variant-numeric: tabular-nums; }
+.qr { text-align: center; font-size: 12px; color: var(--muted); line-height: 1.5; }
+.qr img { display: block; width: 128px; height: 128px; margin: 0 auto 6px; border-radius: 6px; background: #fff; padding: 4px; }
+@media (max-width: 560px) {
+  .get { grid-template-columns: 1fr; }
+  .qr { display: none; }
+}
+
+.toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.toc a {
+  font-size: 13.5px; text-decoration: none; color: var(--fg);
+  border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px;
+}
+.toc a:hover { border-color: var(--accent); }
+
+/* 特徴 */
+.features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+@media (max-width: 560px) { .features { grid-template-columns: 1fr; } }
+.feature { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.feature .t { font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.feature .t svg { width: 20px; height: 20px; flex: none; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.feature p { font-size: 14.5px; color: var(--muted); margin: 0; line-height: 1.7; }
+
+/* 警告の流れ */
+.flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; counter-reset: f; }
+.flow > div {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px;
+  font-size: 14px; line-height: 1.6; position: relative;
+}
+.flow > div::before {
+  counter-increment: f; content: counter(f);
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 50%; background: var(--accent-soft); color: var(--accent);
+  font-weight: 700; font-size: 12.5px; margin-bottom: 6px;
+}
+.flow > div b { display: block; }
+.flow > div.warn { border-color: var(--accent); }
+@media (max-width: 640px) { .flow { grid-template-columns: 1fr 1fr; } }
+
+/* 手順 */
+.steps { list-style: none; padding: 0; margin: 0; counter-reset: step; }
+.steps > li {
+  counter-increment: step; position: relative; padding: 0 0 18px 46px; margin: 0;
+}
+.steps > li::before {
+  content: counter(step); position: absolute; left: 0; top: 0;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-fg);
+  font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center;
+}
+.steps > li::after {
+  content: ""; position: absolute; left: 14px; top: 34px; bottom: 4px; width: 2px; background: var(--line);
+}
+.steps > li:last-child::after { display: none; }
+.steps > li > b:first-child { display: block; font-size: 16.5px; line-height: 30px; }
+.steps p, .steps ul { font-size: 15px; }
+
+.note {
+  background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent);
+  border-radius: 8px; padding: 12px 16px; font-size: 14.5px; margin: 12px 0;
+}
+.note .h { font-weight: 700; display: block; margin-bottom: 4px; }
+.note ol { margin: 6px 0 0; }
+
+.perm { list-style: none; padding: 0; margin: 8px 0 12px; display: grid; gap: 8px; }
+.perm li {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; font-size: 14.5px; margin: 0;
+}
+.perm li b { display: block; font-size: 15px; }
+.perm li span { color: var(--muted); }
+
+/* 表 */
+.tbl { width: 100%; border-collapse: collapse; font-size: 14.5px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.tbl th, .tbl td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl thead th { background: var(--accent-soft); font-size: 13px; }
+.tbl tr:last-child td { border-bottom: 0; }
+.tbl td:last-child { white-space: nowrap; font-weight: 700; }
+.scroll { overflow-x: auto; }
+
+.faq details { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 0 16px; margin-bottom: 8px; }
+.faq summary { cursor: pointer; font-weight: 700; padding: 12px 0; list-style-position: outside; }
+.faq details[open] summary { border-bottom: 1px solid var(--line); margin-bottom: 10px; }
+.faq details p { font-size: 15px; }
+
+footer.end {
+  margin-top: 48px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px;
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px;
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+</head>
+<body>
+<!-- アクセスカウンター: data-src にカウンターCGIの場所、data-page にこのページのタグを書く -->
+<div class="counter" id="access-counter" data-src="https://usepocket.com/api/counter.cgi" data-page="arukisumaho" aria-label="アクセス数">
+  <span>アクセス<b data-k="total">–</b></span>
+  <span>今日<b data-k="today">–</b></span>
+  <span>昨日<b data-k="yesterday">–</b></span>
+</div>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="brand">
+    <img src="icon.png" alt="" width="76" height="76">
+    <h1><small>Androidアプリ</small>歩きスマホ注意 by usePocket</h1>
+  </div>
+  <p class="lead">歩きながらスマホの画面を使うと、赤い警告とバイブで<b>立ち止まるまでしつこく</b>知らせます。警告した回数は端末内に記録され、保護者があとから日別・時間帯別に確認できます。子どもの歩きスマホ対策に作りました。</p>
+  <p class="dev">開発元：<a href="https://usepocket.com" target="_blank" rel="noopener">usePocket（usepocket.com）</a></p>
+
+  <div class="get">
+    <div>
+      <a class="dl" href="https://github.com/fetuin/arukisumaho/releases/latest/download/arukisumaho.apk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>
+        APKをダウンロード
+      </a>
+      <p class="meta">バージョン 1.4 ・ 約80KB ・ Android 8.0以上 ・ 無料<br>
+      <a href="https://github.com/fetuin/arukisumaho/releases">過去のバージョン・更新履歴</a></p>
+    </div>
+    <div class="qr">
+      <img src="qr.svg" alt="APKのダウンロード用QRコード" width="128" height="128">
+      お子さんのスマホで<br>読み取ってください
+    </div>
+  </div>
+
+  <nav class="toc" aria-label="目次">
+    <a href="#features">できること</a>
+    <a href="#flow">警告の流れ</a>
+    <a href="#install">インストール</a>
+    <a href="#setup">初期設定</a>
+    <a href="#settings">判定の調整</a>
+    <a href="#history">履歴</a>
+    <a href="#update">更新</a>
+    <a href="#faq">注意点・よくある質問</a>
+  </nav>
+</header>
+
+<h2 id="features">できること</h2>
+<div class="features">
+  <div class="feature">
+    <div class="t"><svg viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4"/><path d="M12 17h.01"/></svg>しつこく警告</div>
+    <p>画面の上に点滅する赤い警告を重ね、数秒ごとにバイブ。歩き続けると全画面に広がります。</p>
+  </div>
+  <div class="feature">
+    <div class="t"><svg viewBox="0 0 24 24"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>回数を長期保存</div>
+    <p>警告1回ごとに日時・長さ・歩数を記録。日別・時間帯別のグラフで、いつ多いかがわかります。</p>
+  </div>
+  <div class="feature">
+    <div class="t"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>保護者の暗証番号</div>
+    <p>見守りの停止、判定の変更、履歴の消去には暗証番号が必要です。</p>
+  </div>
+  <div class="feature">
+    <div class="t"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>止めた形跡も残る</div>
+    <p>強制停止などで見守りが5分以上止まっていた期間は、理由つきで履歴に残ります。</p>
+  </div>
+</div>
+<p style="margin-top:14px;font-size:14.5px;color:var(--muted)">操作はふさがないので、警告中も地図や電話は使えます。通話中は警告しません。インターネットへの接続は一切せず、記録はスマホの中だけに保存されます。</p>
+
+<h2 id="flow">警告の流れ</h2>
+<div class="flow">
+  <div><b>画面を見ながら歩く</b>ロックを解除した状態で5秒以上歩き続ける</div>
+  <div class="warn"><b>警告が出る</b>赤い警告が点滅し、3秒ごとにバイブ</div>
+  <div class="warn"><b>全画面に広がる</b>警告から10秒たっても歩き続けていると、画面いっぱいに</div>
+  <div><b>立ち止まると消える</b>3秒止まるか、画面を消すと終了。1回として記録</div>
+</div>
+<p style="margin-top:12px;font-size:14.5px">歩いたあと立ち止まってから画面を開いた場合は警告しません。秒数はあとから<a href="#settings">設定で変えられます</a>。</p>
+
+<h2 id="install">インストール</h2>
+<p>Google Playではなく、このページから直接インストールするアプリです。作業は<b>お子さんのスマホ</b>で行います。</p>
+<ol class="steps">
+  <li><b>APKをダウンロード</b>
+    <p>お子さんのスマホで上の「APKをダウンロード」を押すか、PCに表示したQRコードを読み取ります。「このファイルは有害な可能性があります」と出たら「ダウンロード」を押します。</p>
+  </li>
+  <li><b>ダウンロードしたファイルを開く</b>
+    <p>通知の「ダウンロード完了」か、「Files」アプリの「ダウンロード」から <code>arukisumaho.apk</code> を開きます。</p>
+  </li>
+  <li><b>「提供元不明のアプリ」を許可</b>
+    <p>「セキュリティ上の理由から…」と出たら「設定」を押し、使っているブラウザ（Chromeなど）の「この提供元のアプリを許可」をオンにして戻ります。</p>
+  </li>
+  <li><b>インストール</b>
+    <p>「インストール」を押します。Playプロテクトの確認が出たら「詳細」→「インストールする」（または「スキャンせずにインストール」）を選びます。</p>
+  </li>
+</ol>
+
+<h2 id="setup">初期設定</h2>
+<p>アプリを開くと「必要な許可」の一覧が出ます。⚠️の付いた項目の「許可する」を順に押してください。</p>
+<ul class="perm">
+  <li><b>① 身体活動</b><span>歩数を数えるために使います。「許可」を選びます。</span></li>
+  <li><b>② 他のアプリの上に重ねて表示</b><span>警告を表示するために使います。一覧からこのアプリを選んでオンにします。</span></li>
+  <li><b>③ 電池の最適化をしない</b><span>裏で止められないようにします。「許可」を選びます。</span></li>
+  <li><b>④ 通知</b><span>Android 13以降のみ。「見守り中」の通知を出すために使います。</span></li>
+</ul>
+
+<div class="note" id="restricted">
+  <span class="h">Android 13以降で②のスイッチが押せないとき</span>
+  ストア以外から入れたアプリは、この許可が「制限付き設定」で止められています。次の手順で解除してください（アプリ内にも同じ説明が出ます）。
+  <ol>
+    <li>アプリの②「許可する」を一度押し、許可できない画面を出してから戻る</li>
+    <li>アプリの「アプリ情報を開く」を押す（または 設定 → アプリ → 歩きスマホ注意by usePocket）</li>
+    <li>右上の「︙」→「制限付き設定を許可」を押し、指紋や画面ロックで確認</li>
+    <li>アプリに戻り、②の「許可する」をもう一度押す</li>
+  </ol>
+  Android 11以前では、この手順は不要です。
+</div>
+
+<h3>見守りを開始する</h3>
+<ol>
+  <li>すべての許可が ✅ になったら「見守りを開始」を押します。</li>
+  <li>保護者用の暗証番号（4桁以上）を2回入力します。<b>お子さんに知られない番号</b>にしてください。</li>
+  <li>「● 見守り中」と表示され、通知欄に「歩きスマホ見守り中」が出れば完了です。再起動しても自動で再開します。</li>
+</ol>
+<p>動作を試すときは、画面を見ながら5秒ほど歩いてみてください。</p>
+
+<h2 id="settings">判定の調整</h2>
+<p>設定画面の「警告の判定」で変えられます。変更には暗証番号が必要で、すぐに反映されます。</p>
+<div class="scroll">
+<table class="tbl">
+  <thead><tr><th>項目</th><th>選べる値</th><th>初期値</th></tr></thead>
+  <tbody>
+    <tr><td>警告を出すまで（画面を見ながら歩き続けた時間）</td><td>3〜20秒</td><td>5秒</td></tr>
+    <tr><td>警告を消すまで（立ち止まってから）</td><td>2〜8秒</td><td>3秒</td></tr>
+    <tr><td>警告中のバイブ</td><td>なし／2〜10秒ごと</td><td>3秒ごと</td></tr>
+    <tr><td>警告を全画面に広げる</td><td>広げない／5〜30秒後</td><td>10秒後</td></tr>
+  </tbody>
+</table>
+</div>
+<p style="margin-top:12px;font-size:14.5px">警告が多すぎると感じたら、まず「警告を出すまで」を8秒や10秒に延ばしてみてください。</p>
+
+<h2 id="history">履歴を見る</h2>
+<p>設定画面の「警告の履歴を見る」から開きます。</p>
+<ul>
+  <li><b>回数のまとめ</b>：今日・7日間・30日間・累計の回数と、1日あたりの平均</li>
+  <li><b>日別グラフ</b>：最近30日の回数</li>
+  <li><b>時間帯別グラフ</b>：登下校の時間に多いかなど、いちばん多い時間帯もわかります</li>
+  <li><b>警告の一覧</b>：日時・長さ・歩数（新しい順に最大200件）</li>
+  <li><b>見守りが止まっていた期間</b>：電源オフ、強制停止など、保護者の停止を区別して表示。強制停止などは赤字になります</li>
+  <li><b>CSVで共有・保存</b>：全件をメールやメモに送れます</li>
+</ul>
+<p>記録はアンインストールしない限り残ります。「履歴をすべて消去」には暗証番号が必要です。</p>
+
+<h2 id="update">更新のしかた</h2>
+<p>新しいバージョンが出たら、このページから同じようにAPKをダウンロードして開き、「更新」を押すだけです。<b>履歴・設定・暗証番号はそのまま残ります</b>。アンインストールしてから入れ直すと履歴が消えるので注意してください。</p>
+
+<h2 id="faq">注意点・よくある質問</h2>
+<div class="faq">
+  <details>
+    <summary>子どもがアプリを止めたり消したりできませんか？</summary>
+    <p>アプリ内での停止には暗証番号が要りますが、Androidの設定から強制停止やアンインストールをすることは防げません。強制停止された期間は履歴に赤字で残るので、確認の目安にしてください。確実に防ぎたい場合は、Googleファミリーリンクなどでアプリの削除を制限する方法と組み合わせてください。</p>
+  </details>
+  <details>
+    <summary>電車やバスの中で警告が出ます</summary>
+    <p>揺れを歩行と見分けられず、警告が出ることがあります。気になる場合は「警告を出すまで」の秒数を延ばしてください。</p>
+  </details>
+  <details>
+    <summary>警告がまったく出ません</summary>
+    <p>①〜③の許可がすべて ✅ になっているか、「● 見守り中」になっているかを確認してください。機種によっては、電池の節約機能でアプリが止められることがあります。その場合は 設定 → アプリ → 歩きスマホ注意 → 電池 で「制限なし」にしてください。</p>
+  </details>
+  <details>
+    <summary>暗証番号を忘れました</summary>
+    <p>暗証番号を確認・再設定する方法はありません。アンインストールして入れ直せば使えますが、それまでの履歴は消えます。</p>
+  </details>
+  <details>
+    <summary>個人情報は送信されますか？</summary>
+    <p>送信しません。このアプリはインターネットに接続する権限を持っておらず、記録はスマホの中だけに保存されます。</p>
+  </details>
+  <details>
+    <summary>電池の減りは？</summary>
+    <p>歩数センサーのある機種では、歩数の検出はスマホ側の省電力な仕組みで行うため、影響はわずかです。歩数センサーのない機種では画面がついている間だけ加速度センサーを使います。</p>
+  </details>
+  <details>
+    <summary>iPhoneでは使えますか？</summary>
+    <p>Android専用です。Android 8.0以上で動きます（Android 11・17で動作を確認しています）。</p>
+  </details>
+</div>
+
+<footer class="end">
+  <span>開発元：<a href="https://usepocket.com" target="_blank" rel="noopener">usePocket（usepocket.com）</a></span>
+  <span><a href="https://github.com/fetuin/arukisumaho">ソースコード（GitHub）</a></span>
+</footer>
+
+</div>
+
+<script>
+// アクセスカウンター（CGIに届かないときは帯ごと隠す）
+(() => {
+  const box = document.getElementById('access-counter');
+  if (!box) return;
+  const src = box.dataset.src, page = box.dataset.page;
+  if (!src || !page || location.protocol === 'file:') { box.hidden = true; return; }
+  fetch(src + '?page=' + encodeURIComponent(page), { cache: 'no-store' })
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(d => {
+      box.querySelectorAll('[data-k]').forEach(el => {
+        const v = Number(d[el.dataset.k]);
+        el.textContent = Number.isFinite(v) ? v.toLocaleString('ja-JP') : '–';
+      });
+    })
+    .catch(() => { box.hidden = true; });
+})();
+</script>
+</body>
+</html>
