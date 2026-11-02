@@ -5,7 +5,7 @@
 子どもの歩きスマホ対策として作りました。
 
 - **配布ページ（使い方の説明つき）**: https://fetuin.github.io/arukisumaho/
-- **APK（最新版）**: https://github.com/fetuin/arukisumaho/releases/latest/download/arukisumaho.apk
+- **APK（最新版）**: https://fetuin.github.io/arukisumaho/arukisumaho.apk （リポジトリ内では `docs/arukisumaho.apk`）
 - 開発元: [usePocket（usepocket.com）](https://usepocket.com)
 
 ## 動き
@@ -32,7 +32,7 @@ Android 8.0（API 26）以上。Android 11・17 で動作確認。
 |---|---|
 | `app/src/main/java/jp/walkguard/` | アプリ本体（Java、外部ライブラリなし） |
 | `app/src/main/res/` | アイコンなどのリソース |
-| `docs/` | 配布ページ（GitHub Pages で公開） |
+| `docs/` | 配布ページと配布用APK（GitHub Pages で公開） |
 | `tools/make_icon.py` | アイコン画像の生成スクリプト（`uplogo02.gif` から作成） |
 
 判定の初期値は `Prefs.java`、固定の判定パラメータは `WalkGuardService.java` 冒頭の定数にあります。
@@ -62,9 +62,12 @@ keyPassword=********
 ## 新しいバージョンの公開手順
 1. `app/build.gradle` の `versionCode` を1つ増やし、`versionName` を更新
 2. `./gradlew assembleRelease` でビルド
-3. GitHub の Releases に `v1.x` タグで新しいリリースを作り、APK を **`arukisumaho.apk`** という名前で添付
-   （配布ページのダウンロードボタンは常に最新リリースの `arukisumaho.apk` を指します）
-4. `docs/index.html` のバージョン表記・サイズを更新
+3. できた APK を `docs/arukisumaho.apk` に上書きコピー（配布ページのボタンとQRコードはこのファイルを指します）
+4. `docs/index.html` のバージョン表記・サイズと「更新履歴」を更新してコミット
+
+## 配布ページの公開（GitHub Pages）
+リポジトリの Settings → Pages で、Source を「Deploy from a branch」、Branch を `main` ／ `/docs` にして保存します。
+数分後に https://fetuin.github.io/arukisumaho/ で公開されます。
 
 ## アクセスカウンター
 配布ページ上部のアクセス数は、`https://usepocket.com/api/counter.cgi` の汎用カウンターを

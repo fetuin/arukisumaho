@@ -3,6 +3,7 @@
 build/
 app/build/
 *.apk
+!docs/arukisumaho.apk
 *.aab
 
 # 手元の環境設定
